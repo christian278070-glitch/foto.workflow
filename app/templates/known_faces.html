@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Bekannte Gesichter – Foto-Workflow{% endblock %}
+{% block content %}
+
+<h1>Bekannte Gesichter</h1>
+<p class="hint">
+    Lade pro Person ein oder mehrere gut erkennbare Fotos hoch (Frontalaufnahme, gute Beleuchtung).
+    Der Name wird dann automatisch als Bildunterschrift/Keyword eingetragen, wenn die Person auf
+    einem neuen Foto erkannt wird.
+</p>
+
+<form class="add-face-form" method="post" action="/known-faces/add" enctype="multipart/form-data">
+    <label>Name der Person</label>
+    <input type="text" name="person_name" required placeholder="z.B. Max Mustermann">
+    <label>Referenzfoto</label>
+    <input type="file" name="photo" accept="image/jpeg,image/png" required>
+    <button type="submit">Hinzufügen</button>
+</form>
+
+<h2>Gepflegte Personen</h2>
+{% if people %}
+<table class="faces-table">
+    <thead><tr><th>Name</th><th>Referenzfotos</th><th></th></tr></thead>
+    <tbody>
+    {% for person in people %}
+        <tr>
+            <td>{{ person.name }}</td>
+            <td>{{ person.photo_count }}</td>
+            <td>
+                <form method="post" action="/known-faces/delete" onsubmit="return confirm('Person wirklich löschen?');">
+                    <input type="hidden" name="person_name" value="{{ person.name }}">
+                    <button type="submit" class="danger">Löschen</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty-hint">Noch keine Personen hinterlegt.</p>
+{% endif %}
+
+<p class="hint">
+    Hinweis: Die Zuordnung von Namen zu Gesichtern ist die Verarbeitung biometrischer Daten
+    (Art. 9 DSGVO). Kläre die Nutzung am besten kurz mit eurem Datenschutzbeauftragten ab,
+    insbesondere wenn auch Personen erkannt werden, die nicht öffentlich bekannt sind.
+</p>
+{% endblock %}

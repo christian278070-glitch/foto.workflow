@@ -1,0 +1,175 @@
+:root {
+    --bg: #0f1115;
+    --card: #1a1d24;
+    --text: #eef0f3;
+    --muted: #9aa1ac;
+    --accent: #3b82f6;
+    --ok: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--card);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.brand { color: var(--text); font-weight: 600; text-decoration: none; font-size: 1.1rem; }
+
+nav a {
+    color: var(--muted);
+    text-decoration: none;
+    margin-left: 14px;
+    font-size: 0.9rem;
+}
+nav a:hover { color: var(--text); }
+
+main { padding: 16px; max-width: 900px; margin: 0 auto; }
+
+.automation-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    background: var(--card);
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+}
+.badge-ok { background: rgba(34,197,94,0.15); color: var(--ok); }
+.badge-warn { background: rgba(245,158,11,0.15); color: var(--warn); }
+
+button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+button.danger { background: var(--danger); }
+button:active { opacity: 0.8; }
+
+.jobs-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+@media (min-width: 640px) {
+    .jobs-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.job-card {
+    display: flex;
+    gap: 12px;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 12px;
+    border-left: 4px solid var(--muted);
+}
+.job-card.status-gesendet { border-left-color: var(--ok); }
+.job-card.status-fehler { border-left-color: var(--danger); }
+.job-card.status-manuell_gestoppt { border-left-color: var(--danger); }
+.job-card.status-wartet_auf_versand { border-left-color: var(--warn); }
+.job-card.status-verarbeitung { border-left-color: var(--accent); }
+
+.job-thumb img, .thumb-placeholder {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #262a33;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    flex-shrink: 0;
+}
+
+.job-info { flex: 1; min-width: 0; }
+.job-filename { font-weight: 600; margin: 0 0 2px 0; word-break: break-all; font-size: 0.9rem; }
+.job-status { margin: 0 0 4px 0; color: var(--muted); font-size: 0.85rem; }
+.job-names { margin: 2px 0; font-size: 0.85rem; }
+.job-error { margin: 2px 0; color: var(--danger); font-size: 0.8rem; }
+.countdown { margin: 4px 0; color: var(--warn); font-size: 0.8rem; }
+.job-time { margin: 4px 0; color: var(--muted); font-size: 0.75rem; }
+.job-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.job-actions button { padding: 6px 10px; font-size: 0.8rem; }
+
+.empty-hint, .hint { color: var(--muted); }
+
+.login-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+.login-box {
+    background: var(--card);
+    padding: 28px;
+    border-radius: 14px;
+    width: 90%;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.login-box h1 { text-align: center; margin: 0 0 10px 0; font-size: 1.3rem; }
+.login-box input {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #11141a;
+    color: var(--text);
+}
+.login-box .error { color: var(--danger); font-size: 0.85rem; }
+
+.add-face-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--card);
+    padding: 16px;
+    border-radius: 12px;
+    max-width: 400px;
+    margin-bottom: 20px;
+}
+.add-face-form input {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #11141a;
+    color: var(--text);
+}
+
+.faces-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.faces-table th, .faces-table td {
+    text-align: left;
+    padding: 8px;
+    border-bottom: 1px solid #2a2e37;
+}

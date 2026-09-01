@@ -1,0 +1,73 @@
+version: "3.8"
+
+services:
+  # ---------------------------------------------------------------------------
+  # FTP-Server: nimmt die JPGs von der Canon R1 (über mobilen Hotspot) entgegen
+  # ---------------------------------------------------------------------------
+  ftp:
+    image: stilliard/pure-ftpd:hardened
+    container_name: foto_ftp
+    restart: unless-stopped
+    environment:
+      PUBLICHOST: "${VPS_PUBLIC_IP}"
+      FTP_USER_NAME: "${CAMERA_FTP_USER}"
+      FTP_USER_PASS: "${CAMERA_FTP_PASS}"
+      FTP_USER_HOME: /home/ftpusers/camera
+      ADDED_FLAGS: "--maxclientsperip=4 --maxclientsnumber=10"
+    ports:
+      - "21:21"
+      - "30000-30009:30000-30009"
+    volumes:
+      - incoming:/home/ftpusers/camera
+
+  # ---------------------------------------------------------------------------
+  # App: Watcher + Bildverarbeitung + Gesichtserkennung + Weiterleitung + Dashboard
+  # ---------------------------------------------------------------------------
+  app:
+    build: ./app
+    container_name: foto_app
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - ftp
+    volumes:
+      - incoming:/data/incoming
+      - processing:/data/processing
+      - archive:/data/archive
+      - review:/data/review
+      - failed:/data/failed
+      - known_faces:/data/known_faces
+      - appdata:/data/db
+    expose:
+      - "8080"
+
+  # ---------------------------------------------------------------------------
+  # Caddy: automatisches HTTPS + Reverse Proxy fürs Dashboard (per iPhone erreichbar)
+  # ---------------------------------------------------------------------------
+  caddy:
+    image: caddy:2
+    container_name: foto_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      DASHBOARD_DOMAIN: "${DASHBOARD_DOMAIN}"
+      ACME_EMAIL: "${ACME_EMAIL}"
+    depends_on:
+      - app
+
+volumes:
+  incoming:
+  processing:
+  archive:
+  review:
+  failed:
+  known_faces:
+  appdata:
+  caddy_data:
+  caddy_config:

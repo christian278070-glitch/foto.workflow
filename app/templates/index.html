@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Übersicht – Foto-Workflow{% endblock %}
+{% block content %}
+
+<div class="automation-bar">
+    {% if automation_paused %}
+        <span class="badge badge-warn">⏸ Automatik pausiert – Bilder warten auf manuelle Freigabe</span>
+    {% else %}
+        <span class="badge badge-ok">▶ Automatik läuft – Bilder werden automatisch weitergeleitet</span>
+    {% endif %}
+    <button id="toggle-automation-btn">
+        {% if automation_paused %}Automatik fortsetzen{% else %}Automatik pausieren{% endif %}
+    </button>
+</div>
+
+<div id="jobs-container" class="jobs-grid">
+    <p class="empty-hint">Lade Bilder…</p>
+</div>
+
+<script>
+const STATUS_LABELS = {
+    "eingegangen": "Eingegangen",
+    "verarbeitung": "Wird bearbeitet…",
+    "wartet_auf_versand": "Wartet auf Versand",
+    "gesendet": "Gesendet ✓",
+    "fehler": "Fehler ⚠",
+    "manuell_gestoppt": "Gestoppt",
+};
+
+function fmtTime(ts) {
+    if (!ts) return "";
+    const d = new Date(ts * 1000);
+    return d.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit", second: "2-digit"});
+}
+
+function renderJobs(data) {
+    const container = document.getElementById("jobs-container");
+    if (!data.jobs.length) {
+        container.innerHTML = '<p class="empty-hint">Noch keine Bilder eingegangen.</p>';
+        return;
+    }
+    container.innerHTML = data.jobs.map(job => {
+        const statusLabel = STATUS_LABELS[job.status] || job.status;
+        const statusClass = "status-" + job.status;
+        let countdown = "";
+        if (job.status === "wartet_auf_versand" && job.forward_at) {
+            const remaining = Math.max(0, Math.round(job.forward_at - (Date.now() / 1000)));
+            countdown = remaining > 0
+                ? `<p class="countdown">Versand in ${remaining}s – jetzt eingreifen möglich</p>`
+                : `<p class="countdown">Wird gleich gesendet…</p>`;
+        }
+        let actions = "";
+        if (job.status === "wartet_auf_versand") {
+            actions = `
+                <button onclick="doAction(${job.id}, 'send_now')">Jetzt senden</button>
+                <button class="danger" onclick="doAction(${job.id}, 'stop')">Stoppen</button>`;
+        } else if (job.status === "fehler" || job.status === "manuell_gestoppt") {
+            actions = `<button onclick="doAction(${job.id}, 'retry')">Erneut senden</button>`;
+        }
+        const thumb = job.has_thumb
+            ? `<img src="/thumb/${job.id}" alt="${job.filename}" loading="lazy">`
+            : `<div class="thumb-placeholder">⏳</div>`;
+        return `
+        <div class="job-card ${statusClass}">
+            <div class="job-thumb">${thumb}</div>
+            <div class="job-info">
+                <p class="job-filename">${job.filename}</p>
+                <p class="job-status">${statusLabel}</p>
+                ${job.recognized_names ? `<p class="job-names">👤 ${job.recognized_names}</p>` : ""}
+                ${job.error ? `<p class="job-error">${job.error}</p>` : ""}
+                ${countdown}
+                <p class="job-time">Eingegangen: ${fmtTime(job.created_at)}${job.sent_at ? " · Gesendet: " + fmtTime(job.sent_at) : ""}</p>
+                <div class="job-actions">${actions}</div>
+            </div>
+        </div>`;
+    }).join("");
+}
+
+async function refresh() {
+    try {
+        const res = await fetch("/api/jobs");
+        if (res.status === 401) { window.location = "/login"; return; }
+        const data = await res.json();
+        renderJobs(data);
+    } catch (e) {
+        console.error("Fehler beim Laden der Bilder", e);
+    }
+}
+
+async function doAction(jobId, action) {
+    await fetch(`/jobs/${jobId}/${action}`, {method: "POST"});
+    refresh();
+}
+
+document.getElementById("toggle-automation-btn").addEventListener("click", async () => {
+    await fetch("/automation/toggle", {method: "POST"});
+    window.location.reload();
+});
+
+refresh();
+setInterval(refresh, 3000);
+</script>
+{% endblock %}
